@@ -72,9 +72,16 @@ connectiq                                              # launches the simulator
 monkeydo bin/LiveRunningEconomy-fr170m.prg fr170m
 ```
 
-In the simulator, use the Sensors/Simulation panel (or a FIT-replay) to feed Running Power, HR,
-and speed so `currentPower` etc. are non-null — see **Known limitations** below regarding
-verifying this.
+To run a test activity: **Simulation → Activity Data**, leave Data Source on "Data Simulation",
+click **Start** (begins the on-watch timer), then click the ▶ play control next to the slider at
+the bottom of that panel (this is what actually advances simulated time/sensors — Start alone
+does not). EF (speed+HR based) populates within a few seconds this way.
+
+**Running Power does not populate in "Data Simulation" mode** — confirmed on SDK 9.2.0: speed and
+heart rate ramp up and EF computes correctly, but `currentPower` stays null the entire run, so
+Power/HR and the default 30s graph stay on "collecting...". To get real power data, either load a
+recorded FIT file with a Running Power stream via **Data Source → FIT/GPX Playable File**, or test
+on-device. See **Known limitations** below.
 
 ### Gotcha: `has`-guard optional Activity.Info fields
 
@@ -102,10 +109,11 @@ optional field read was guarded this way.
   offline report. The optional grade-adjust toggle is a rough linear heuristic, not a GAP model.
 - **Data field memory budget is small.** The ring buffer is capped at 30 samples and reused
   in place; avoid growing it or adding per-tick allocations in `onUpdate`.
-- **Simulator power replay is unverified.** The build compiles and runs in the simulator without
-  crashing (SDK 9.2.0), but confirming a non-null *live* `currentPower` reading requires manually
-  driving the simulator's Sensors panel or a FIT replay — not yet done on this machine. Test
-  on-device if in doubt.
+- **Simulator's "Data Simulation" mode does not synthesize Running Power.** Confirmed on SDK
+  9.2.0: speed and heart rate are fabricated and ramp up fine (EF works), but `currentPower` stays
+  null for the whole run. The field correctly stays on "collecting..." for the (default) Power/HR
+  graph rather than crashing — but you'll want a real FIT replay with a power stream, or on-device
+  testing, before trusting Power/HR numbers.
 - Null handling: metrics only accumulate when heart rate, speed (and, for Power/HR, power) are
   present and speed is above a small moving threshold (0.5 m/s), to avoid divide-by-noise while
   stopped.

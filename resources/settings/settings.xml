@@ -1,0 +1,11 @@
+<settings>
+    <setting propertyKey="@Properties.GraphMetric" title="@Strings.GraphMetricTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.GraphMetricPowerHr</listEntry>
+            <listEntry value="1">@Strings.GraphMetricEf</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.GradeAdjustEnabled" title="@Strings.GradeAdjustTitle">
+        <settingConfig type="boolean"/>
+    </setting>
+</settings>

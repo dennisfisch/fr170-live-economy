@@ -1,0 +1,4 @@
+<properties>
+    <property id="GraphMetric" type="number">0</property>
+    <property id="GradeAdjustEnabled" type="boolean">false</property>
+</properties>

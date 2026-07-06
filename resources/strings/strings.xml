@@ -1,0 +1,7 @@
+<strings>
+    <string id="AppName">Live Running Economy</string>
+    <string id="GraphMetricTitle">Graph metric</string>
+    <string id="GraphMetricPowerHr">Power/HR</string>
+    <string id="GraphMetricEf">EF (speed-based)</string>
+    <string id="GradeAdjustTitle">Grade-adjust EF (approx.)</string>
+</strings>

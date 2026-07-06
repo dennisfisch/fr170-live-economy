@@ -154,10 +154,11 @@ class LiveRunningEconomyView extends Ui.DataField {
             return;
         }
 
-        var rowHeight = height / 3;
-        drawRow(dc, 0, rowHeight, width, _smoothedEf, _smoothedPowerHr, Gfx.FONT_NUMBER_MEDIUM, "NOW");
-        drawRow(dc, rowHeight, rowHeight, width, splitEf(), splitPowerHr(), Gfx.FONT_NUMBER_MILD, "SPLIT");
-        drawGraph(dc, rowHeight * 2, height - rowHeight * 2, width);
+        var nowHeight = (height * 0.36).toNumber();
+        var splitHeight = (height * 0.30).toNumber();
+        drawRow(dc, 0, nowHeight, width, _smoothedEf, _smoothedPowerHr, Gfx.FONT_NUMBER_MEDIUM, "NOW");
+        drawRow(dc, nowHeight, splitHeight, width, splitEf(), splitPowerHr(), Gfx.FONT_NUMBER_MILD, "SPLIT");
+        drawGraph(dc, nowHeight + splitHeight, height - nowHeight - splitHeight, width);
     }
 
     private function drawCompact(dc as Gfx.Dc, width as Number, height as Number) as Void {
@@ -168,13 +169,16 @@ class LiveRunningEconomyView extends Ui.DataField {
     }
 
     private function drawRow(dc as Gfx.Dc, y as Number, rowHeight as Number, width as Number, efValue as Float?, powerHrValue as Float?, font as Gfx.FontDefinition, label as String) as Void {
-        var labelY = y + 2;
-        var valueY = y + rowHeight / 2 - 6;
-        dc.drawText(width / 2, labelY, Gfx.FONT_XTINY, label, Gfx.TEXT_JUSTIFY_CENTER);
+        var titleFont = Gfx.FONT_XTINY;
+        var titleH = dc.getFontHeight(titleFont);
+        var metricLabelY = y + titleH + 2;
+        var valueY = metricLabelY + titleH + 2;
+
+        dc.drawText(width / 2, y, titleFont, label, Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(width / 4, metricLabelY, titleFont, "EF", Gfx.TEXT_JUSTIFY_CENTER);
+        dc.drawText(width * 3 / 4, metricLabelY, titleFont, "P/HR", Gfx.TEXT_JUSTIFY_CENTER);
         dc.drawText(width / 4, valueY, font, formatValue(efValue), Gfx.TEXT_JUSTIFY_CENTER);
         dc.drawText(width * 3 / 4, valueY, font, formatValue(powerHrValue), Gfx.TEXT_JUSTIFY_CENTER);
-        dc.drawText(width / 4, valueY + 20, Gfx.FONT_XTINY, "EF", Gfx.TEXT_JUSTIFY_CENTER);
-        dc.drawText(width * 3 / 4, valueY + 20, Gfx.FONT_XTINY, "P/HR", Gfx.TEXT_JUSTIFY_CENTER);
     }
 
     private function drawGraph(dc as Gfx.Dc, y as Number, areaHeight as Number, width as Number) as Void {

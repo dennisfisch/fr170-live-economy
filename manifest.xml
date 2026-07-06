@@ -3,10 +3,10 @@
                      type="datafield"
                      name="@Strings.AppName"
                      entry="LiveRunningEconomyApp"
+                     launcherIcon="@Drawables.LauncherIcon"
                      minSdkVersion="4.2.0">
         <iq:products>
-            <iq:product id="forerunner170"/>
-            <iq:product id="forerunner170music"/>
+            <iq:product id="fr170m"/>
         </iq:products>
         <iq:permissions>
         </iq:permissions>

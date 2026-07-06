@@ -1,6 +1,6 @@
 using Toybox.Application as App;
 using Toybox.WatchUi as Ui;
-using Toybox.Lang as Lang;
+import Toybox.Lang;
 
 class LiveRunningEconomyApp extends App.AppBase {
 
@@ -8,7 +8,7 @@ class LiveRunningEconomyApp extends App.AppBase {
         AppBase.initialize();
     }
 
-    function getInitialView() as Lang.Array {
+    function getInitialView() {
         return [ new LiveRunningEconomyView() ];
     }
 }

@@ -2,7 +2,7 @@ using Toybox.WatchUi as Ui;
 using Toybox.Graphics as Gfx;
 using Toybox.Activity as Activity;
 using Toybox.Application as App;
-using Toybox.Lang as Lang;
+import Toybox.Lang;
 
 const GRAPH_METRIC_POWER_HR = 0;
 const GRAPH_METRIC_EF = 1;
@@ -20,10 +20,10 @@ class LiveRunningEconomyView extends Ui.DataField {
     private var _smoothedPowerHr as Float?;
     private var _smoothedEf as Float?;
 
-    private var _splitPowerHrSum as Float;
-    private var _splitPowerHrCount as Number;
-    private var _splitEfSum as Float;
-    private var _splitEfCount as Number;
+    private var _splitPowerHrSum as Float = 0.0;
+    private var _splitPowerHrCount as Number = 0;
+    private var _splitEfSum as Float = 0.0;
+    private var _splitEfCount as Number = 0;
 
     private var _prevAltitude as Float?;
     private var _prevDistance as Float?;
@@ -38,12 +38,11 @@ class LiveRunningEconomyView extends Ui.DataField {
     }
 
     function loadSettings() as Void {
-        var app = App.getApp();
-        var metric = app.getProperty("GraphMetric");
+        var metric = App.Properties.getValue("GraphMetric");
         if (metric != null) {
             _graphMetric = metric;
         }
-        var gradeAdjust = app.getProperty("GradeAdjustEnabled");
+        var gradeAdjust = App.Properties.getValue("GradeAdjustEnabled");
         if (gradeAdjust != null) {
             _gradeAdjustEnabled = gradeAdjust;
         }
@@ -75,9 +74,11 @@ class LiveRunningEconomyView extends Ui.DataField {
     }
 
     function compute(info as Activity.Info) as Void {
-        var hr = info.currentHeartRate;
-        var power = info.currentPower;
-        var speed = info.currentSpeed;
+        // Optional Activity.Info fields must be `has`-guarded: an unguarded access throws
+        // "Symbol Not Found" at runtime on devices/firmware where the field isn't populated.
+        var hr = (info has :currentHeartRate) ? info.currentHeartRate : null;
+        var power = (info has :currentPower) ? info.currentPower : null;
+        var speed = (info has :currentSpeed) ? info.currentSpeed : null;
 
         if (hr == null || hr <= 0 || speed == null || speed <= MOVING_SPEED_THRESHOLD) {
             return;
@@ -114,8 +115,8 @@ class LiveRunningEconomyView extends Ui.DataField {
 
     // Rough grade correction: speed *= 1 + 3*grade, clamped to keep GPS/baro glitches from spiking the display.
     private function applyGradeAdjustment(ef as Float, info as Activity.Info) as Float {
-        var altitude = info.altitude;
-        var distance = info.elapsedDistance;
+        var altitude = (info has :altitude) ? info.altitude : null;
+        var distance = (info has :elapsedDistance) ? info.elapsedDistance : null;
         var adjusted = ef;
 
         if (altitude != null && distance != null && _prevAltitude != null && _prevDistance != null) {
@@ -166,7 +167,7 @@ class LiveRunningEconomyView extends Ui.DataField {
         dc.drawText(width / 2, y2, Gfx.FONT_TINY, "P/HR " + formatValue(_smoothedPowerHr), Gfx.TEXT_JUSTIFY_CENTER);
     }
 
-    private function drawRow(dc as Gfx.Dc, y as Number, rowHeight as Number, width as Number, efValue as Float?, powerHrValue as Float?, font as Number, label as String) as Void {
+    private function drawRow(dc as Gfx.Dc, y as Number, rowHeight as Number, width as Number, efValue as Float?, powerHrValue as Float?, font as Gfx.FontDefinition, label as String) as Void {
         var labelY = y + 2;
         var valueY = y + rowHeight / 2 - 6;
         dc.drawText(width / 2, labelY, Gfx.FONT_XTINY, label, Gfx.TEXT_JUSTIFY_CENTER);

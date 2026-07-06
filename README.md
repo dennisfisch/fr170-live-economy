@@ -1,6 +1,6 @@
 # Live Running Economy — Connect IQ Data Field
 
-Full-screen Connect IQ data field for the **Garmin Forerunner 170 / 170 Music** that shows two
+Full-screen Connect IQ data field for the **Garmin Forerunner 170 Music** (device id `fr170m`) that shows two
 running-economy metrics live, each in three time windows: instantaneous, current split/lap average,
 and a 30-second sparkline.
 
@@ -33,7 +33,7 @@ text lines (no graph).
 ## Project layout
 
 ```
-manifest.xml                          products: forerunner170, forerunner170music
+manifest.xml                          product: fr170m (Forerunner 170 Music)
 monkey.jungle
 source/
   LiveRunningEconomyApp.mc             AppBase entry point
@@ -43,13 +43,15 @@ resources/
   strings/strings.xml
   settings/properties.xml              persisted app settings (defaults)
   settings/settings.xml                Garmin Connect Mobile settings UI
+  drawables/                           launcher icon (required by manifest even for datafield type)
 ```
 
 ## Setup
 
 1. Install the Connect IQ SDK Manager: https://developer.garmin.com/connect-iq/sdk/
    Use it to accept the SDK license and download the current SDK core plus the
-   **Forerunner 170** and **Forerunner 170 Music** device definitions.
+   **Forerunner 170 Music** (`fr170m`) device definition. Installs to
+   `~/Library/Application Support/Garmin/ConnectIQ/` on macOS, not `~/.Garmin/`.
 2. Generate a developer key (once), keep it outside the repo:
    ```
    openssl genrsa -out developer_key.pem 4096
@@ -60,20 +62,33 @@ resources/
 ## Build
 
 ```
-monkeyc -f monkey.jungle -d forerunner170        -o bin/LiveRunningEconomy-fr170.prg      -y developer_key.der
-monkeyc -f monkey.jungle -d forerunner170music   -o bin/LiveRunningEconomy-fr170music.prg  -y developer_key.der
+monkeyc -f monkey.jungle -d fr170m -o bin/LiveRunningEconomy-fr170m.prg -y developer_key.der
 ```
 
 ## Simulator
 
 ```
-connectiq                 # launches the simulator
-monkeydo bin/LiveRunningEconomy-fr170.prg forerunner170
+connectiq                                              # launches the simulator
+monkeydo bin/LiveRunningEconomy-fr170m.prg fr170m
 ```
 
-In the simulator, use the sensor/FIT-replay panel to feed Running Power (and HR/speed) so
-`currentPower` is non-null. If your simulator build doesn't support power replay, sideload to a
-real FR170 and record a short outdoor/treadmill run instead — see **Known limitations** below.
+In the simulator, use the Sensors/Simulation panel (or a FIT-replay) to feed Running Power, HR,
+and speed so `currentPower` etc. are non-null — see **Known limitations** below regarding
+verifying this.
+
+### Gotcha: `has`-guard optional Activity.Info fields
+
+`info.currentPower`, `currentSpeed`, `currentHeartRate`, and `altitude` are all conditionally
+present depending on device/firmware. Accessing one directly without a guard compiles fine but
+**crashes at runtime** with `Symbol Not Found Error` the instant `compute()` runs on a device/sim
+where the field isn't populated yet. Always guard:
+
+```
+var power = (info has :currentPower) ? info.currentPower : null;
+```
+
+This bit us during initial testing — the field crashed immediately in the simulator until every
+optional field read was guarded this way.
 
 ## Sideload
 
@@ -87,9 +102,10 @@ real FR170 and record a short outdoor/treadmill run instead — see **Known limi
   offline report. The optional grade-adjust toggle is a rough linear heuristic, not a GAP model.
 - **Data field memory budget is small.** The ring buffer is capped at 30 samples and reused
   in place; avoid growing it or adding per-tick allocations in `onUpdate`.
-- **Simulator power replay is unverified on this machine** at the time of writing — confirm your
-  SDK/simulator version can replay Running Power for FR170 before relying on it for testing;
-  otherwise test on-device.
+- **Simulator power replay is unverified.** The build compiles and runs in the simulator without
+  crashing (SDK 9.2.0), but confirming a non-null *live* `currentPower` reading requires manually
+  driving the simulator's Sensors panel or a FIT replay — not yet done on this machine. Test
+  on-device if in doubt.
 - Null handling: metrics only accumulate when heart rate, speed (and, for Power/HR, power) are
   present and speed is above a small moving threshold (0.5 m/s), to avoid divide-by-noise while
   stopped.

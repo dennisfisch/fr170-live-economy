@@ -1,4 +1,4 @@
-using Toybox.Lang as Lang;
+import Toybox.Lang;
 
 // Fixed-capacity circular buffer. No allocation after construction.
 class RingBuffer {
